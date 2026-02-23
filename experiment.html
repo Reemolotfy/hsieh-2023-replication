@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Age Estimation Experiment</title>
+    <script src="https://unpkg.com/jspsych@7.3.4"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@1.1.3"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-image-keyboard-response@1.1.3"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-survey-text@1.1.3"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-preload@1.1.3"></script>
+    <link href="https://unpkg.com/jspsych@7.3.4/css/jspsych.css" rel="stylesheet" type="text/css" />
+    
+    <style>
+        body {
+            background-color: #808080; 
+            color: white; 
+            font-family: Arial, sans-serif;
+        }
+    </style>
+</head>
+<body></body>
+<script>
+
+    /* --- 1. INITIALIZE JSPSYCH FIRST --- */
+    const jsPsych = initJsPsych({
+        on_finish: function() {
+            jsPsych.data.get().localSave('csv', `age_estimation_${subject_id}.csv`);
+        }
+    });
+
+    /* --- 2. SETUP & COUNTERBALANCING (MANUAL INPUT) --- */
+    
+    // Step 1: Ask the researcher (you) to enter the ID manually
+    var subject_id = prompt("Enter Participant ID (numbers only, e.g., 1, 2, 3...):");
+
+    // Convert string to number (in case they typed "01" or " 1 ")
+    var id_number = parseInt(subject_id);
+
+    // Step 2: Check if valid
+    if (isNaN(id_number)) {
+        alert("Error: You must enter a number! Reloading page...");
+        location.reload(); // Force reload if they mess up
+    }
+
+    // Step 3: Assign Group based on Even/Odd
+    // If ID is Odd (1, 3, 5) -> Group A
+    // If ID is Even (2, 4, 6) -> Group B
+    var condition_group = (id_number % 2 !== 0) ? 'A' : 'B';
+
+    // Save this info so you can check it later
+    jsPsych.data.addProperties({
+        subject: subject_id,
+        group: condition_group,
+        date: new Date().toLocaleDateString()
+    });
+
+    // Alert the researcher so they can verify before handing the laptop to the participant
+    alert(`Participant ID: ${subject_id}\nAssigned Group: ${condition_group}\n\nPress OK to start the experiment.`);
+
+    /* --- 3. GENERATE STIMULI LISTS --- */
+
+    // EXP 1: Faces 001 to 100 (Colour vs Greyscale)
+    var task1_stimuli = [];
+    for (let i = 1; i <= 100; i++) {
+        let id = i.toString().padStart(3, '0'); // "001", "002"...
+        let condition;
+
+        // Logic: If Group A, Odds are Color. If Group B, Odds are Grey.
+        if (condition_group === 'A') {
+            condition = (i % 2 !== 0) ? 'color' : 'grey';
+        } else {
+            condition = (i % 2 !== 0) ? 'grey' : 'color';
+        }
+
+        task1_stimuli.push({
+            stimulus: `img/face_${id}_${condition}.jpg`,
+            data: { task: 'exp1', face_id: id, condition: condition }
+        });
+    }
+
+    // EXP 2: Faces 101 to 200 (RG+ vs RG-)
+    var task2_stimuli = [];
+    for (let i = 101; i <= 200; i++) {
+        let id = i.toString().padStart(3, '0');
+        let condition;
+
+        // Logic: If Group A, Odds are RG+. If Group B, Odds are RG-.
+        if (condition_group === 'A') {
+            condition = (i % 2 !== 0) ? 'rg_plus' : 'rg_minus';
+        } else {
+            condition = (i % 2 !== 0) ? 'rg_minus' : 'rg_plus';
+        }
+
+        task2_stimuli.push({
+            stimulus: `img/face_${id}_${condition}.jpg`,
+            data: { task: 'exp2', face_id: id, condition: condition }
+        });
+    }
+
+    /* --- 3. TRIAL COMPONENTS --- */
+
+    // 1. Preload (We combine both lists to load everything at start)
+    var all_images = task1_stimuli.map(t => t.stimulus).concat(task2_stimuli.map(t => t.stimulus));
+    var preload = {
+        type: jsPsychPreload,
+        images: all_images,
+        message: 'Loading experiment images...',
+        show_progress_bar: true
+    };
+
+    // 2. Fixation
+    var fixation = {
+        type: jsPsychHtmlKeyboardResponse,
+        stimulus: '<div style="font-size:60px;">+</div>',
+        choices: "NO_KEYS",
+        trial_duration: 500,
+        data: { task_part: 'fixation' }
+    };
+
+    // 3. Face Display (Using HTML to force size)
+    var face_display = {
+        type: jsPsychHtmlKeyboardResponse,
+        stimulus: function() {
+            var img_path = jsPsych.timelineVariable('stimulus');
+            // Force 400px height
+            return `<img src="${img_path}" style="height:400px; width:auto;">`; 
+        },
+        choices: "NO_KEYS",
+        trial_duration: 2000, // 2 seconds
+        data: jsPsych.timelineVariable('data')
+    };
+
+    // 4. Response
+    var age_response = {
+        type: jsPsychSurveyText,
+        questions: [
+            {prompt: "How old is this person?", placeholder: "Age", required: true, name: 'age'}
+        ],
+        button_label: 'Next',
+        data: jsPsych.timelineVariable('data'),
+        on_finish: function(data){
+            // Extract answer cleanly
+            var response_obj = data.response;
+            data.age_rating = response_obj.age;
+        }
+    };
+
+    /* --- 4. BUILD TIMELINE --- */
+    var timeline = [];
+
+    timeline.push(preload);
+
+    // Welcome
+    var welcome = {
+        type: jsPsychHtmlKeyboardResponse,
+        stimulus: `
+            <h1>Welcome to the Experiment</h1>
+            <p>You will see a series of faces. Each face appears for <b>2 seconds</b>.</p>
+            <p>Your task is to estimate their age.</p>
+            <p>Press any key to begin Part 1.</p>
+        `
+    };
+    timeline.push(welcome);
+
+    // --- PART 1: Colour vs Grey ---
+    var task1_procedure = {
+        timeline: [fixation, face_display, age_response],
+        timeline_variables: task1_stimuli,
+        randomize_order: true // Important: Randomize the 100 trials
+    };
+    timeline.push(task1_procedure);
+
+    // Break
+    var break_screen = {
+        type: jsPsychHtmlKeyboardResponse,
+        stimulus: `
+            <h2>Break</h2>
+            <p>You have finished Part 1.</p>
+            <p>Take a short rest.</p>
+            <p>Press any key to start Part 2.</p>
+        `
+    };
+    timeline.push(break_screen);
+
+    // --- PART 2: RG+ vs RG- ---
+    var task2_procedure = {
+        timeline: [fixation, face_display, age_response],
+        timeline_variables: task2_stimuli,
+        randomize_order: true // Important: Randomize the 100 trials
+    };
+    timeline.push(task2_procedure);
+
+    // End & Save
+    var end_screen = {
+        type: jsPsychHtmlKeyboardResponse,
+        stimulus: `
+            <h1>Experiment Complete</h1>
+            <p>Thank you!</p>
+            <p>Your data should download automatically.</p>
+            <p>If not, <b>press SPACE</b> to download.</p>
+            <div style="font-size:12px; color:#ccc; margin-top:20px;">ID: ${subject_id} (${condition_group})</div>
+        `,
+        choices: [' '],
+        on_load: function() {
+            jsPsych.data.get().localSave('csv', `age_estimation_${subject_id}.csv`);
+        },
+        on_finish: function() {
+            jsPsych.data.get().localSave('csv', `age_estimation_${subject_id}_manual.csv`);
+        }
+    };
+    timeline.push(end_screen);
+
+    /* --- 5. RUN --- */
+    jsPsych.run(timeline);
+
+</script>
+</html>
