@@ -1,7 +1,13 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Age Estimation Experiment</title>
+    <link rel="preload" href="assets/garrett-parker-DlkF4-dbCOU-unsplash.jpg" as="image">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/jspsych@7.3.4"></script>
     <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@1.1.3"></script>
     <script src="https://unpkg.com/@jspsych/plugin-image-keyboard-response@1.1.3"></script>
@@ -10,207 +16,1103 @@
     <link href="https://unpkg.com/jspsych@7.3.4/css/jspsych.css" rel="stylesheet" type="text/css" />
     
     <style>
+        :root {
+            --bg-dark: rgba(10, 12, 28, 0.4);
+            --bg-mid: rgba(30, 40, 80, 0.35);
+            --surface: rgba(255, 255, 255, 0.08);
+            --surface-elevated: rgba(255, 255, 255, 0.12);
+            --accent: #22d3ee;
+            --accent-2: #a78bfa;
+            --accent-hover: #38bdf8;
+            --accent-soft: rgba(34, 211, 238, 0.25);
+            --text: #f0f9ff;
+            --text-muted: rgba(255, 255, 255, 0.75);
+            --border: rgba(255, 255, 255, 0.18);
+            --glow: rgba(34, 211, 238, 0.4);
+            --radius: 20px;
+            --radius-sm: 12px;
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+            --transition: 0.25s ease;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        .bg-animation, .experiment-blur-bg, .landing-page, .setup-overlay {
+            contain: layout style;
+            transform: translateZ(0);
+        }
+
+        /* Smooth modern cursors – system defaults for a clean, native feel */
+        html, body {
+            cursor: default;
+        }
+        a, button, .jspsych-btn, .landing-cta, .setup-btn, [role="button"] {
+            cursor: pointer;
+        }
+        input, textarea, [contenteditable="true"] {
+            cursor: text;
+        }
+
         body {
-            background-color: #808080; 
-            color: white; 
-            font-family: Arial, sans-serif;
+            margin: 0;
+            min-height: 100vh;
+            min-height: 100dvh;
+            position: relative;
+            background: var(--bg-dark);
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            color: var(--text);
+            font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+            font-size: clamp(15px, 2.2vw, 18px);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+        @media (min-width: 768px) {
+            body { background-attachment: fixed; }
+        }
+
+        /* Light tint overlay – lets wallpaper show through */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background: linear-gradient(180deg, rgba(15, 25, 45, 0.35) 0%, rgba(20, 30, 55, 0.4) 50%, rgba(15, 25, 45, 0.5) 100%);
+            pointer-events: none;
+        }
+
+        /* Animated background orbs – subtle layer over wallpaper */
+        .bg-animation {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        /* Blurred background – URL set in JS for correct path */
+        .experiment-blur-bg {
+            position: fixed;
+            inset: -20px;
+            z-index: 0;
+            background-color: rgba(15, 25, 45, 0.3);
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            filter: blur(22px);
+            -webkit-filter: blur(22px);
+            transform: scale(1.1);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.6s ease;
+        }
+
+        .experiment-blur-bg::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(15, 25, 45, 0.3) 0%, rgba(20, 30, 55, 0.35) 50%, rgba(15, 25, 45, 0.45) 100%);
+        }
+
+        body.experiment-running .experiment-blur-bg {
+            opacity: 1;
+        }
+
+        /* When experiment runs, dim the main overlay so blurred layer shows */
+        body.experiment-running::before {
+            opacity: 0.35;
+        }
+
+        /* Experiment content above the animated background */
+        #jspsych-target {
+            position: relative;
+            z-index: 1;
+        }
+
+        .bg-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.22;
+            will-change: transform;
+        }
+
+        .bg-orb-1 {
+            width: min(55vmax, 420px);
+            height: min(55vmax, 420px);
+            background: var(--accent);
+            top: 10%;
+            left: 15%;
+            animation: float1 22s ease-in-out infinite;
+        }
+
+        .bg-orb-2 {
+            width: min(45vmax, 340px);
+            height: min(45vmax, 340px);
+            background: var(--accent-2);
+            top: 55%;
+            right: 10%;
+            animation: float2 28s ease-in-out infinite;
+        }
+
+        .bg-orb-3 {
+            width: min(40vmax, 280px);
+            height: min(40vmax, 280px);
+            background: var(--accent);
+            bottom: 15%;
+            left: 25%;
+            animation: float3 25s ease-in-out infinite;
+        }
+
+        @keyframes float1 {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(8%, 6%) scale(1.05); }
+            66% { transform: translate(-4%, 10%) scale(0.98); }
+        }
+
+        @keyframes float2 {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(-10%, -5%) scale(1.02); }
+            66% { transform: translate(5%, 8%) scale(0.95); }
+        }
+
+        @keyframes float3 {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(6%, -8%) scale(1.03); }
+        }
+
+        /* Screen enter animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.85; transform: scale(1.02); }
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        /* Let background show through – override jsPsych default */
+        #jspsych-target,
+        .jspsych-display-element,
+        .jspsych-content-wrapper {
+            background: transparent !important;
+        }
+
+        .jspsych-display-element {
+            padding: clamp(12px, 4vw, 24px) !important;
+        }
+
+        .jspsych-content-wrapper {
+            max-width: min(640px, 100%);
+            margin: 0 auto;
+            padding: clamp(12px, 4vw, 20px);
+        }
+
+        .jspsych-content {
+            animation: fadeIn 0.45s ease-out;
+            text-align: center;
+        }
+
+        /* Welcome screen with wallpaper */
+        .welcome-screen-container {
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .welcome-screen-wrap {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            inset: 0;
+            z-index: 0;
+            background-image: url('assets/garrett-parker-DlkF4-dbCOU-unsplash.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        .welcome-screen-wrap::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(15, 25, 45, 0.4) 0%, rgba(20, 30, 55, 0.5) 50%, rgba(15, 25, 45, 0.55) 100%);
+        }
+        .welcome-screen-container .screen-card {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Break and end screens: full-screen wallpaper + transparent card */
+        .break-screen-container,
+        .end-screen-container {
+            position: relative;
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .break-screen-container .wallpaper-wrap,
+        .end-screen-container .wallpaper-wrap {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 0;
+            background-image: url('assets/garrett-parker-DlkF4-dbCOU-unsplash.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        .break-screen-container .wallpaper-wrap::after,
+        .end-screen-container .wallpaper-wrap::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(15, 25, 45, 0.4) 0%, rgba(20, 30, 55, 0.5) 50%, rgba(15, 25, 45, 0.55) 100%);
+        }
+        .break-screen-container .screen-card,
+        .end-screen-container .screen-card {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Instruction / info cards – transparent glass (wallpaper shows through) */
+        .screen-card {
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: var(--radius);
+            padding: 48px 40px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        }
+
+        .screen-card h1 {
+            margin: 0 0 16px;
+            font-size: clamp(1.35rem, 4vw, 1.75rem);
+            font-weight: 700;
+            color: var(--text);
+            letter-spacing: -0.02em;
+        }
+
+        .screen-card h2 {
+            margin: 0 0 12px;
+            font-size: clamp(1.15rem, 3vw, 1.35rem);
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        .screen-card p {
+            margin: 0 0 12px;
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+
+        .screen-card p:last-of-type {
+            margin-bottom: 0;
+        }
+
+        .screen-card .press-key {
+            margin-top: 28px;
+            font-size: 0.9rem;
+            color: var(--accent);
+            font-weight: 500;
+        }
+
+        /* Loading animation (replaces fixation cross) */
+        .loading-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+        .loading-spinner {
+            width: 56px;
+            height: 56px;
+            border: 4px solid rgba(255, 255, 255, 0.12);
+            border-top-color: var(--accent);
+            border-right-color: var(--accent-2);
+            border-radius: 50%;
+            animation: loading-spin 0.85s linear infinite;
+        }
+        @keyframes loading-spin {
+            to { transform: rotate(360deg); }
+        }
+        .loading-dots {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            justify-content: center;
+        }
+        .loading-dots span {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent);
+            animation: loading-bounce 1.4s ease-in-out infinite both;
+        }
+        .loading-dots span:nth-child(1) { animation-delay: 0s; }
+        .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes loading-bounce {
+            0%, 80%, 100% { transform: scale(0.6); opacity: 0.5; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Face trial: wallpaper background behind the face */
+        .face-trial-wrap {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        .face-trial-wrap::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(15, 25, 45, 0.35) 0%, rgba(20, 30, 55, 0.4) 50%, rgba(15, 25, 45, 0.5) 100%);
+        }
+        .jspsych-content-wrapper:has(.face-trial-wrap) {
+            position: relative;
+            z-index: 1;
+        }
+        .face-container {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Face image container – glass */
+        .face-container {
+            display: inline-block;
+            padding: clamp(12px, 3vw, 24px);
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: var(--radius);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+            animation: fadeIn 0.3s ease-out;
+            max-width: 100%;
+        }
+
+        .face-container img {
+            height: auto;
+            max-height: min(400px, 70vh);
+            width: auto;
+            max-width: 100%;
+            display: block;
+            border-radius: var(--radius-sm);
+            object-fit: contain;
+        }
+
+        /* Survey form - center prompt and inputs */
+        .jspsych-survey-text .jspsych-survey-question,
+        .jspsych-survey-text p,
+        .jspsych-survey-text .jspsych-survey-preamble {
+            text-align: center;
+            color: #000 !important;
+            font-weight: 600;
+            font-size: 1.15rem;
+            margin-bottom: 12px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.92);
+            border-radius: var(--radius-sm);
+            display: inline-block;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .jspsych-display-element input[type="text"] {
+            width: 140px !important;
+            max-width: 90%;
+            margin: 16px auto 24px !important;
+            padding: 16px 20px !important;
+            font-size: 1.25rem !important;
+            font-family: inherit !important;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.92) !important;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 2px solid rgba(0, 0, 0, 0.12) !important;
+            border-radius: var(--radius-sm) !important;
+            color: #000 !important;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+            transition: border-color var(--transition), box-shadow var(--transition);
+        }
+
+        .jspsych-display-element input[type="text"]:focus {
+            outline: none !important;
+            border-color: var(--accent) !important;
+            box-shadow: 0 0 0 2px var(--accent-soft), 0 2px 12px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        .jspsych-display-element input[type="text"]::placeholder {
+            color: rgba(0, 0, 0, 0.45);
+        }
+
+        .jspsych-btn {
+            padding: 14px 32px !important;
+            font-size: 1rem !important;
+            font-weight: 600 !important;
+            font-family: inherit !important;
+            color: #0f172a !important;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%) !important;
+            border: 1px solid rgba(255, 255, 255, 0.35) !important;
+            border-radius: var(--radius-sm) !important;
+            cursor: pointer;
+            transition: transform var(--transition), box-shadow var(--transition);
+            box-shadow: 0 4px 20px var(--glow), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+
+        .jspsych-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 28px var(--glow), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+        }
+
+        .jspsych-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Progress bar */
+        #jspsych-progressbar-container {
+            background: rgba(255, 255, 255, 0.1) !important;
+            backdrop-filter: blur(10px);
+            border-radius: 999px !important;
+            overflow: hidden !important;
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        #jspsych-progressbar-outer {
+            padding: 6px 10px !important;
+        }
+
+        #jspsych-progressbar-inner {
+            background: linear-gradient(90deg, var(--accent), var(--accent-2)) !important;
+            border-radius: 999px !important;
+            transition: width 0.3s ease !important;
+        }
+
+        #jspsych-progressbar-container span {
+            color: var(--text-muted) !important;
+            font-size: 0.85rem !important;
+            font-weight: 500;
+        }
+
+        /* Preload message */
+        .jspsych-preload-message,
+        #jspsych-preload-message {
+            color: var(--text-muted) !important;
+            font-size: 1.1rem !important;
+        }
+
+        /* Survey (age response) screen: wallpaper behind form – on the same container so it always shows */
+        .jspsych-display-element.survey-has-wallpaper {
+            background-image: url('assets/garrett-parker-DlkF4-dbCOU-unsplash.jpg') !important;
+            background-size: cover !important;
+            background-position: center !important;
+            background-repeat: no-repeat !important;
+            min-height: 100vh;
+            min-height: 100dvh;
+            position: relative;
+        }
+        .jspsych-display-element.survey-has-wallpaper::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(15, 25, 45, 0.4) 0%, rgba(20, 30, 55, 0.45) 50%, rgba(15, 25, 45, 0.55) 100%);
+            pointer-events: none;
+        }
+        .jspsych-display-element.survey-has-wallpaper .jspsych-content-wrapper {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Center submit button in survey */
+        .jspsych-survey-text .jspsych-survey-form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* End screen meta */
+        .end-meta {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 28px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        /* ========== LANDING PAGE ========== */
+        .landing-page {
+            position: fixed;
+            inset: 0;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: clamp(12px, 4vw, 24px);
+            transition: opacity 0.45s ease, visibility 0.45s ease;
+        }
+
+        .landing-page.landing-page--hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .landing-card {
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: clamp(16px, 4vw, 24px);
+            padding: clamp(28px, 8vw, 56px) clamp(20px, 5vw, 48px);
+            max-width: min(520px, calc(100% - 24px));
+            width: 100%;
+            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            text-align: center;
+        }
+
+        .landing-badge {
+            display: inline-block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 20px;
+            padding: 6px 14px;
+            background: rgba(34, 211, 238, 0.2);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border-radius: 999px;
+            animation: landingFadeIn 0.8s ease-out;
+        }
+
+        .landing-title {
+            font-size: 2.25rem;
+            font-weight: 700;
+            color: var(--text);
+            letter-spacing: -0.03em;
+            line-height: 1.2;
+            margin: 0 0 12px;
+            animation: landingTitleIn 1s ease-out 0.2s both;
+        }
+
+        .landing-subtitle {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            margin: 0 0 24px;
+            font-weight: 500;
+            animation: landingFadeIn 0.9s ease-out 0.4s both;
+        }
+
+        .landing-desc {
+            font-size: 1rem;
+            color: var(--text-muted);
+            line-height: 1.65;
+            margin: 0 0 36px;
+            animation: landingFadeIn 0.9s ease-out 0.55s both;
+        }
+
+        .landing-cta {
+            display: inline-block;
+            padding: 18px 48px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            font-family: inherit;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+            color: #0f172a;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            box-shadow: 0 6px 24px var(--glow), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            transition: transform var(--transition), box-shadow var(--transition);
+            animation: landingFadeIn 0.9s ease-out 0.7s both;
+        }
+
+        .landing-cta:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 10px 32px var(--glow), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+        }
+
+        .landing-cta:active {
+            transform: translateY(0) scale(1);
+        }
+
+        .landing-hint {
+            margin-top: 20px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            opacity: 0.9;
+            animation: landingFadeIn 0.9s ease-out 0.85s both;
+        }
+
+        /* ========== ID ENTRY & CONFIRMATION (replace popups) ========== */
+        .setup-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: clamp(12px, 4vw, 24px);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.4s ease, visibility 0.4s ease;
+        }
+
+        .setup-overlay.setup-overlay--visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .setup-card {
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: clamp(16px, 4vw, 24px);
+            padding: clamp(24px, 6vw, 48px) clamp(20px, 5vw, 44px);
+            max-width: min(440px, calc(100% - 24px));
+            width: 100%;
+            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+            text-align: center;
+            transform: translateY(20px);
+            transition: transform 0.35s ease;
+        }
+
+        .setup-overlay--visible .setup-card {
+            transform: translateY(0);
+        }
+
+        .setup-card h2 {
+            font-size: clamp(1.2rem, 3.5vw, 1.5rem);
+            font-weight: 700;
+            color: var(--text);
+            margin: 0 0 10px;
+            letter-spacing: -0.02em;
+        }
+
+        .setup-card .setup-desc {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            margin: 0 0 28px;
+            line-height: 1.5;
+        }
+
+        .setup-input-wrap {
+            margin-bottom: 24px;
+        }
+
+        .setup-input {
+            width: 100%;
+            max-width: 200px;
+            margin: 0 auto;
+            display: block;
+            padding: 16px 20px;
+            font-size: 1.25rem;
+            font-family: inherit;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: var(--radius-sm);
+            color: var(--text);
+            transition: border-color var(--transition), box-shadow var(--transition);
+        }
+
+        .setup-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px var(--accent-soft);
+        }
+
+        .setup-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .setup-input.setup-input--error {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px var(--accent-soft);
+        }
+
+        .setup-error {
+            font-size: 0.875rem;
+            color: var(--accent);
+            margin-top: 10px;
+            min-height: 20px;
+        }
+
+        .setup-btn {
+            display: inline-block;
+            padding: 16px 40px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            font-family: inherit;
+            color: #0f172a;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            box-shadow: 0 6px 24px var(--glow), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            transition: transform var(--transition), box-shadow var(--transition);
+        }
+
+        .setup-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 28px var(--glow), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+        }
+
+        .setup-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Confirmation screen */
+        .confirm-badges {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 24px 0 32px;
+        }
+
+        .confirm-badge {
+            padding: 12px 24px;
+            border-radius: var(--radius-sm);
+            font-size: 0.95rem;
+            font-weight: 600;
+            background: rgba(34, 211, 238, 0.15);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            color: var(--accent);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+        }
+
+        .confirm-badge span {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        @keyframes landingFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes landingTitleIn {
+            from {
+                opacity: 0;
+                transform: translateY(24px) scale(0.98);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 640px) {
+            .loading-spinner { width: 48px; height: 48px; border-width: 3px; }
+            .landing-cta, .setup-btn { min-height: 44px; padding: 14px 28px; }
+            .screen-card { padding: clamp(24px, 6vw, 48px) clamp(20px, 5vw, 40px); }
+            .bg-orb { opacity: 0.14; }
+        }
+        @media (max-width: 480px) {
+            .landing-title { font-size: 1.5rem; }
+        }
+        button, .jspsych-btn, .landing-cta, .setup-btn {
+            touch-action: manipulation;
         }
     </style>
 </head>
-<body></body>
-<script>
+<body>
+    <div class="bg-animation" aria-hidden="true">
+        <span class="bg-orb bg-orb-1"></span>
+        <span class="bg-orb bg-orb-2"></span>
+        <span class="bg-orb bg-orb-3"></span>
+    </div>
 
-    /* --- 1. INITIALIZE JSPSYCH FIRST --- */
+    <div class="experiment-blur-bg" id="experiment-blur-bg" aria-hidden="true"></div>
+
+    <div id="landing-page" class="landing-page">
+        <div class="landing-card">
+            <div class="landing-badge">Research Study</div>
+            <h1 class="landing-title">How We See Age</h1>
+            <p class="landing-subtitle">A short experiment on age perception</p>
+            <p class="landing-desc">You’ll see a series of faces and be asked to estimate each person’s age. Your responses help us understand how we perceive age. It takes about 15–20 minutes.</p>
+            <button type="button" class="landing-cta" id="landing-start">Begin</button>
+            <p class="landing-hint">Press any key to start</p>
+        </div>
+    </div>
+
+    <div id="id-entry-overlay" class="setup-overlay" aria-hidden="true">
+        <div class="setup-card">
+            <h2>Participant ID</h2>
+            <p class="setup-desc">Enter your participant number. Numbers only.</p>
+            <form id="id-entry-form">
+                <div class="setup-input-wrap">
+                    <input type="text" id="participant-id-input" class="setup-input" placeholder="" inputmode="numeric" autocomplete="off" maxlength="6">
+                    <p id="id-error" class="setup-error" role="alert"></p>
+                </div>
+                <button type="submit" class="setup-btn">Continue</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="confirm-overlay" class="setup-overlay" aria-hidden="true">
+        <div class="setup-card">
+            <h2>You’re all set</h2>
+            <p class="setup-desc">Confirm your details, then start when you’re ready.</p>
+            <div class="confirm-badges">
+                <div class="confirm-badge">
+                    <span>Participant ID</span>
+                    <span id="confirm-id-value">—</span>
+                </div>
+                <div class="confirm-badge">
+                    <span>Group</span>
+                    <span id="confirm-group-value">—</span>
+                </div>
+            </div>
+            <button type="button" class="setup-btn" id="confirm-start-btn">Start experiment</button>
+        </div>
+    </div>
+</body>
+<script>
+    /* --- 0. WALLPAPER FROM ASSETS (works file:// or server) + preload for speed --- */
+    var WALLPAPER_URL = (function() {
+        var base = location.href.replace(/[#?].*$/, '').replace(/\/[^/]*$/, '/');
+        var url = base + 'assets/garrett-parker-DlkF4-dbCOU-unsplash.jpg';
+        document.body.style.backgroundImage = 'url("' + url + '")';
+        var blurBg = document.getElementById('experiment-blur-bg');
+        if (blurBg) blurBg.style.backgroundImage = 'url("' + url + '")';
+        var img = new Image();
+        img.src = url;
+        return url;
+    })();
+
+    /* --- 1. INITIALIZE JSPSYCH --- */
+    var subject_id;
     const jsPsych = initJsPsych({
         on_finish: function() {
-            jsPsych.data.get().localSave('csv', `age_estimation_${subject_id}.csv`);
+            if (subject_id) jsPsych.data.get().localSave('csv', 'age_estimation_' + subject_id + '.csv');
         }
     });
 
-    /* --- 2. SETUP & COUNTERBALANCING (MANUAL INPUT) --- */
-    
-    // Step 1: Ask the researcher (you) to enter the ID manually
-    var subject_id = prompt("Enter Participant ID (numbers only, e.g., 1, 2, 3...):");
+    var condition_group;
 
-    // Convert string to number (in case they typed "01" or " 1 ")
-    var id_number = parseInt(subject_id);
-
-    // Step 2: Check if valid
-    if (isNaN(id_number)) {
-        alert("Error: You must enter a number! Reloading page...");
-        location.reload(); // Force reload if they mess up
+    function onLandingKeydown(e) {
+        if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+        showIdEntry();
     }
 
-    // Step 3: Assign Group based on Even/Odd
-    // If ID is Odd (1, 3, 5) -> Group A
-    // If ID is Even (2, 4, 6) -> Group B
-    var condition_group = (id_number % 2 !== 0) ? 'A' : 'B';
+    function showIdEntry() {
+        document.getElementById('landing-page').classList.add('landing-page--hidden');
+        document.removeEventListener('keydown', onLandingKeydown);
+        var overlay = document.getElementById('id-entry-overlay');
+        overlay.classList.add('setup-overlay--visible');
+        overlay.setAttribute('aria-hidden', 'false');
+        document.getElementById('participant-id-input').value = '';
+        document.getElementById('id-error').textContent = '';
+        document.getElementById('participant-id-input').classList.remove('setup-input--error');
+        setTimeout(function() { document.getElementById('participant-id-input').focus(); }, 300);
+    }
 
-    // Save this info so you can check it later
-    jsPsych.data.addProperties({
-        subject: subject_id,
-        group: condition_group,
-        date: new Date().toLocaleDateString()
+    function showConfirm() {
+        document.getElementById('id-entry-overlay').classList.remove('setup-overlay--visible');
+        document.getElementById('id-entry-overlay').setAttribute('aria-hidden', 'true');
+        document.getElementById('confirm-id-value').textContent = subject_id;
+        document.getElementById('confirm-group-value').textContent = 'Group ' + condition_group;
+        var overlay = document.getElementById('confirm-overlay');
+        overlay.classList.add('setup-overlay--visible');
+        overlay.setAttribute('aria-hidden', 'false');
+    }
+
+    function runExperiment() {
+        document.getElementById('confirm-overlay').classList.remove('setup-overlay--visible');
+        document.getElementById('confirm-overlay').setAttribute('aria-hidden', 'true');
+        document.body.classList.add('experiment-running');
+
+        jsPsych.data.addProperties({
+            subject: subject_id,
+            group: condition_group,
+            date: new Date().toLocaleDateString()
+        });
+
+        var task1_stimuli = [];
+        for (var i = 1; i <= 100; i++) {
+            var id = (i < 10 ? '00' : (i < 100 ? '0' : '')) + String(i);
+            var condition = (condition_group === 'A') ? ((i % 2 !== 0) ? 'color' : 'grey') : ((i % 2 !== 0) ? 'grey' : 'color');
+            task1_stimuli.push({ stimulus: 'img/face_' + id + '_' + condition + '.jpg', data: { task: 'exp1', face_id: id, condition: condition } });
+        }
+
+        var task2_stimuli = [];
+        for (var i = 101; i <= 200; i++) {
+            var id = String(i);
+            var condition = (condition_group === 'A') ? ((i % 2 !== 0) ? 'rg_plus' : 'rg_minus') : ((i % 2 !== 0) ? 'rg_minus' : 'rg_plus');
+            task2_stimuli.push({ stimulus: 'img/face_' + id + '_' + condition + '.jpg', data: { task: 'exp2', face_id: id, condition: condition } });
+        }
+
+        var all_images = task1_stimuli.map(function(t) { return t.stimulus; }).concat(task2_stimuli.map(function(t) { return t.stimulus; }));
+        var preload = { type: jsPsychPreload, images: all_images, message: 'Loading experiment images...', show_progress_bar: true };
+
+        var fixation = {
+            type: jsPsychHtmlKeyboardResponse,
+            stimulus: '<div class="loading-screen" aria-label="Loading"><div class="loading-spinner"></div><div class="loading-dots" aria-hidden="true"><span></span><span></span><span></span></div></div>',
+            choices: "NO_KEYS",
+            trial_duration: 500,
+            data: { task_part: 'fixation' }
+        };
+
+        var face_display = {
+            type: jsPsychHtmlKeyboardResponse,
+            stimulus: function() {
+                var img_path = jsPsych.timelineVariable('stimulus');
+                return '<div class="face-trial-wrap" id="face-trial-wrap"></div><div class="face-container"><img src="' + img_path + '" alt="Face"></div>';
+            },
+            choices: "NO_KEYS",
+            trial_duration: 2000,
+            data: jsPsych.timelineVariable('data'),
+            on_load: function() {
+                var wrap = document.getElementById('face-trial-wrap');
+                if (wrap && typeof WALLPAPER_URL !== 'undefined') wrap.style.backgroundImage = 'url("' + WALLPAPER_URL + '")';
+            }
+        };
+
+        var age_response = {
+            type: jsPsychSurveyText,
+            questions: [{ prompt: "How old is this person?", placeholder: "Age", required: true, name: 'age' }],
+            button_label: 'Next',
+            data: jsPsych.timelineVariable('data'),
+            on_load: function() {
+                var displayEl = document.querySelector('.jspsych-display-element');
+                if (displayEl) {
+                    displayEl.classList.add('survey-has-wallpaper');
+                    if (typeof WALLPAPER_URL !== 'undefined') displayEl.style.backgroundImage = 'url("' + WALLPAPER_URL + '")';
+                }
+            },
+            on_finish: function(data) {
+                data.age_rating = data.response.age;
+                var displayEl = document.querySelector('.jspsych-display-element');
+                if (displayEl) {
+                    displayEl.classList.remove('survey-has-wallpaper');
+                    displayEl.style.backgroundImage = '';
+                }
+            }
+        };
+
+        var timeline = [];
+        timeline.push(preload);
+        timeline.push({
+            type: jsPsychHtmlKeyboardResponse,
+            stimulus: '<div class="welcome-screen-container"><div class="welcome-screen-wrap"></div><div class="screen-card"><h1>Welcome to the Experiment</h1><p>You will see a series of faces. Each face appears for <b>2 seconds</b>.</p><p>Your task is to estimate their age.</p><p class="press-key">Press any key to begin Part 1.</p></div></div>',
+            on_load: function() {
+                var wrap = document.querySelector('.welcome-screen-wrap');
+                if (wrap && WALLPAPER_URL) wrap.style.backgroundImage = 'url("' + WALLPAPER_URL + '")';
+            }
+        });
+        timeline.push({
+            timeline: [fixation, face_display, age_response],
+            timeline_variables: task1_stimuli,
+            randomize_order: true
+        });
+        var break_trial = {
+            type: jsPsychHtmlKeyboardResponse,
+            stimulus: '<div class="break-screen-container"><div class="wallpaper-wrap"></div><div class="screen-card break-screen"><h2>Break</h2><p>You have finished Part 1.</p><p>Take a short rest.</p><p class="press-key">Press any key to start Part 2.</p></div></div>',
+            on_load: function() {
+                var wrap = document.querySelector('.break-screen-container .wallpaper-wrap');
+                if (wrap && typeof WALLPAPER_URL !== 'undefined') wrap.style.backgroundImage = 'url("' + WALLPAPER_URL + '")';
+            }
+        };
+        var end_trial = {
+            type: jsPsychHtmlKeyboardResponse,
+            stimulus: '<div class="end-screen-container"><div class="wallpaper-wrap"></div><div class="screen-card end-screen"><h1>Experiment Complete</h1><p>Thank you for taking part.</p><p>Your data should download automatically.</p><p class="press-key">If not, press <b>SPACE</b> to download.</p><div class="end-meta">ID: ' + subject_id + ' · Group: ' + condition_group + '</div></div></div>',
+            choices: [' '],
+            on_load: function() {
+                var wrap = document.querySelector('.end-screen-container .wallpaper-wrap');
+                if (wrap && typeof WALLPAPER_URL !== 'undefined') wrap.style.backgroundImage = 'url("' + WALLPAPER_URL + '")';
+                jsPsych.data.get().localSave('csv', 'age_estimation_' + subject_id + '.csv');
+            },
+            on_finish: function() { jsPsych.data.get().localSave('csv', 'age_estimation_' + subject_id + '_manual.csv'); }
+        };
+
+        var isPreview = /[?&]preview=1/i.test(location.search);
+        if (isPreview) {
+            timeline = [break_trial, end_trial];
+        } else {
+            timeline.push(break_trial);
+            timeline.push({
+                timeline: [fixation, face_display, age_response],
+                timeline_variables: task2_stimuli,
+                randomize_order: true
+            });
+            timeline.push(end_trial);
+        }
+
+        jsPsych.run(timeline);
+    }
+
+    document.getElementById('landing-start').addEventListener('click', showIdEntry);
+    document.addEventListener('keydown', onLandingKeydown);
+
+    document.getElementById('id-entry-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        var input = document.getElementById('participant-id-input');
+        var errEl = document.getElementById('id-error');
+        var raw = input.value.trim();
+        var id_number = parseInt(raw, 10);
+
+        if (raw === '' || isNaN(id_number) || id_number < 1) {
+            errEl.textContent = 'Please enter a valid number (e.g. 1, 2, 3…).';
+            input.classList.add('setup-input--error');
+            input.focus();
+            return;
+        }
+
+        subject_id = String(id_number);
+        condition_group = (id_number % 2 !== 0) ? 'A' : 'B';
+        errEl.textContent = '';
+        input.classList.remove('setup-input--error');
+        showConfirm();
     });
 
-    // Alert the researcher so they can verify before handing the laptop to the participant
-    alert(`Participant ID: ${subject_id}\nAssigned Group: ${condition_group}\n\nPress OK to start the experiment.`);
+    document.getElementById('confirm-start-btn').addEventListener('click', runExperiment);
 
-    /* --- 3. GENERATE STIMULI LISTS --- */
-
-    // EXP 1: Faces 001 to 100 (Colour vs Greyscale)
-    var task1_stimuli = [];
-    for (let i = 1; i <= 100; i++) {
-        let id = i.toString().padStart(3, '0'); // "001", "002"...
-        let condition;
-
-        // Logic: If Group A, Odds are Color. If Group B, Odds are Grey.
-        if (condition_group === 'A') {
-            condition = (i % 2 !== 0) ? 'color' : 'grey';
-        } else {
-            condition = (i % 2 !== 0) ? 'grey' : 'color';
+    document.getElementById('confirm-overlay').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            document.getElementById('confirm-start-btn').click();
         }
-
-        task1_stimuli.push({
-            stimulus: `img/face_${id}_${condition}.jpg`,
-            data: { task: 'exp1', face_id: id, condition: condition }
-        });
-    }
-
-    // EXP 2: Faces 101 to 200 (RG+ vs RG-)
-    var task2_stimuli = [];
-    for (let i = 101; i <= 200; i++) {
-        let id = i.toString().padStart(3, '0');
-        let condition;
-
-        // Logic: If Group A, Odds are RG+. If Group B, Odds are RG-.
-        if (condition_group === 'A') {
-            condition = (i % 2 !== 0) ? 'rg_plus' : 'rg_minus';
-        } else {
-            condition = (i % 2 !== 0) ? 'rg_minus' : 'rg_plus';
-        }
-
-        task2_stimuli.push({
-            stimulus: `img/face_${id}_${condition}.jpg`,
-            data: { task: 'exp2', face_id: id, condition: condition }
-        });
-    }
-
-    /* --- 3. TRIAL COMPONENTS --- */
-
-    // 1. Preload (We combine both lists to load everything at start)
-    var all_images = task1_stimuli.map(t => t.stimulus).concat(task2_stimuli.map(t => t.stimulus));
-    var preload = {
-        type: jsPsychPreload,
-        images: all_images,
-        message: 'Loading experiment images...',
-        show_progress_bar: true
-    };
-
-    // 2. Fixation
-    var fixation = {
-        type: jsPsychHtmlKeyboardResponse,
-        stimulus: '<div style="font-size:60px;">+</div>',
-        choices: "NO_KEYS",
-        trial_duration: 500,
-        data: { task_part: 'fixation' }
-    };
-
-    // 3. Face Display (Using HTML to force size)
-    var face_display = {
-        type: jsPsychHtmlKeyboardResponse,
-        stimulus: function() {
-            var img_path = jsPsych.timelineVariable('stimulus');
-            // Force 400px height
-            return `<img src="${img_path}" style="height:400px; width:auto;">`; 
-        },
-        choices: "NO_KEYS",
-        trial_duration: 2000, // 2 seconds
-        data: jsPsych.timelineVariable('data')
-    };
-
-    // 4. Response
-    var age_response = {
-        type: jsPsychSurveyText,
-        questions: [
-            {prompt: "How old is this person?", placeholder: "Age", required: true, name: 'age'}
-        ],
-        button_label: 'Next',
-        data: jsPsych.timelineVariable('data'),
-        on_finish: function(data){
-            // Extract answer cleanly
-            var response_obj = data.response;
-            data.age_rating = response_obj.age;
-        }
-    };
-
-    /* --- 4. BUILD TIMELINE --- */
-    var timeline = [];
-
-    timeline.push(preload);
-
-    // Welcome
-    var welcome = {
-        type: jsPsychHtmlKeyboardResponse,
-        stimulus: `
-            <h1>Welcome to the Experiment</h1>
-            <p>You will see a series of faces. Each face appears for <b>2 seconds</b>.</p>
-            <p>Your task is to estimate their age.</p>
-            <p>Press any key to begin Part 1.</p>
-        `
-    };
-    timeline.push(welcome);
-
-    // --- PART 1: Colour vs Grey ---
-    var task1_procedure = {
-        timeline: [fixation, face_display, age_response],
-        timeline_variables: task1_stimuli,
-        randomize_order: true // Important: Randomize the 100 trials
-    };
-    timeline.push(task1_procedure);
-
-    // Break
-    var break_screen = {
-        type: jsPsychHtmlKeyboardResponse,
-        stimulus: `
-            <h2>Break</h2>
-            <p>You have finished Part 1.</p>
-            <p>Take a short rest.</p>
-            <p>Press any key to start Part 2.</p>
-        `
-    };
-    timeline.push(break_screen);
-
-    // --- PART 2: RG+ vs RG- ---
-    var task2_procedure = {
-        timeline: [fixation, face_display, age_response],
-        timeline_variables: task2_stimuli,
-        randomize_order: true // Important: Randomize the 100 trials
-    };
-    timeline.push(task2_procedure);
-
-    // End & Save
-    var end_screen = {
-        type: jsPsychHtmlKeyboardResponse,
-        stimulus: `
-            <h1>Experiment Complete</h1>
-            <p>Thank you!</p>
-            <p>Your data should download automatically.</p>
-            <p>If not, <b>press SPACE</b> to download.</p>
-            <div style="font-size:12px; color:#ccc; margin-top:20px;">ID: ${subject_id} (${condition_group})</div>
-        `,
-        choices: [' '],
-        on_load: function() {
-            jsPsych.data.get().localSave('csv', `age_estimation_${subject_id}.csv`);
-        },
-        on_finish: function() {
-            jsPsych.data.get().localSave('csv', `age_estimation_${subject_id}_manual.csv`);
-        }
-    };
-    timeline.push(end_screen);
-
-    /* --- 5. RUN --- */
-    jsPsych.run(timeline);
-
+    });
 </script>
 </html>
