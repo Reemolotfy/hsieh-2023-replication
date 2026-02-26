@@ -131,6 +131,9 @@
             position: relative;
             z-index: 1;
         }
+        #jspsych-target:has(.welcome-screen-container) {
+            background: transparent !important;
+        }
 
         .bg-orb {
             position: absolute;
@@ -222,7 +225,26 @@
             text-align: center;
         }
 
-        /* Welcome screen with wallpaper */
+        /* Welcome screen – bg on display element from frame 1 so no white flash */
+        .jspsych-display-element:has(.welcome-screen-container) {
+            position: relative !important;
+            min-height: 100vh;
+            background-image: url('assets/garrett-parker-DlkF4-dbCOU-unsplash.jpg') !important;
+            background-size: cover !important;
+            background-position: center !important;
+            background-repeat: no-repeat !important;
+            background-color: #0f1929 !important;
+        }
+        .jspsych-display-element:has(.welcome-screen-container)::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(15, 25, 45, 0.4) 0%, rgba(20, 30, 55, 0.5) 50%, rgba(15, 25, 45, 0.55) 100%);
+            pointer-events: none;
+        }
+        .jspsych-display-element:has(.welcome-screen-container) .jspsych-content {
+            animation: none;
+        }
         .welcome-screen-container {
             position: relative;
             min-height: 100vh;
@@ -239,16 +261,11 @@
             bottom: 0;
             inset: 0;
             z-index: 0;
-            background-image: url('assets/garrett-parker-DlkF4-dbCOU-unsplash.jpg');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
+            background: transparent !important;
+            background-image: none !important;
         }
         .welcome-screen-wrap::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(180deg, rgba(15, 25, 45, 0.4) 0%, rgba(20, 30, 55, 0.5) 50%, rgba(15, 25, 45, 0.55) 100%);
+            content: none;
         }
         .welcome-screen-container .screen-card {
             position: relative;
@@ -462,6 +479,10 @@
         .jspsych-display-element input[type="text"]::placeholder {
             color: var(--text-muted);
         }
+        .jspsych-display-element input[type="text"].setup-input--error {
+            border-color: var(--accent) !important;
+            box-shadow: 0 0 0 2px var(--accent-soft) !important;
+        }
 
         .jspsych-btn {
             padding: 14px 32px !important;
@@ -486,12 +507,13 @@
             transform: translateY(0);
         }
 
-        /* ========== Preload screen: match site theme (wallpaper + glass card) ========== */
+        /* ========== Preload screen: same bg as rest of site (wallpaper + overlay) ========== */
         body:has(#jspsych-preload-message) .jspsych-display-element {
             background-image: url('assets/garrett-parker-DlkF4-dbCOU-unsplash.jpg') !important;
             background-size: cover !important;
             background-position: center !important;
             background-repeat: no-repeat !important;
+            background-attachment: fixed !important;
             min-height: 100vh !important;
             min-height: 100dvh !important;
             display: flex !important;
@@ -503,7 +525,7 @@
             content: '';
             position: fixed;
             inset: 0;
-            background: linear-gradient(180deg, rgba(15, 25, 45, 0.45) 0%, rgba(20, 30, 55, 0.5) 50%, rgba(15, 25, 45, 0.55) 100%);
+            background: linear-gradient(180deg, rgba(15, 25, 45, 0.35) 0%, rgba(20, 30, 55, 0.4) 50%, rgba(15, 25, 45, 0.5) 100%);
             pointer-events: none;
             z-index: 0;
         }
@@ -531,6 +553,28 @@
         }
         .preload-screen-content .loading-screen {
             margin-bottom: 20px;
+        }
+        /* Loading bar – same style as progress bar (shimmer gradient) */
+        .loading-bar-wrap {
+            width: min(280px, 85vw);
+            margin: 0 auto 24px;
+        }
+        .loading-bar-track {
+            height: 12px;
+            border-radius: 999px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.2);
+        }
+        .loading-bar-fill {
+            height: 100%;
+            width: 45%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, var(--accent), var(--accent-2), var(--accent));
+            background-size: 200% 100%;
+            animation: progress-shimmer 2.5s ease-in-out infinite;
+            box-shadow: 0 0 12px var(--glow);
         }
         .preload-message-text {
             margin: 0 0 20px !important;
@@ -596,6 +640,47 @@
         }
         body.experiment-running #progress-counter {
             display: block !important;
+        }
+
+        /* Progress bar in trial content – bottom, wide, transparent glass */
+        .trial-progress-bar {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: min(92vw, 900px);
+            padding: 18px 28px;
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: var(--radius);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        }
+        .trial-progress-bar .progress-bar-track {
+            width: 100%;
+            height: 14px;
+            border-radius: 999px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+        .trial-progress-bar .progress-bar-fill {
+            height: 100%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, var(--accent), var(--accent-2));
+            opacity: 0.85;
+            box-shadow: 0 0 12px var(--glow);
+            transition: width 0.35s ease-out;
+        }
+        .trial-progress-bar .progress-bar-label {
+            margin-top: 10px;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text);
         }
 
         /* Survey (age response) screen: wallpaper behind form – on the same container so it always shows */
@@ -1000,22 +1085,31 @@
 
     /* --- 1. INITIALIZE JSPSYCH --- */
     var subject_id;
+    var IMAGES_TOTAL = 200;
+
+    function getProgressCount() {
+        try {
+            var trials = jsPsych.data.get().values();
+            if (!Array.isArray(trials)) return 0;
+            var count = 0;
+            for (var i = 0; i < trials.length; i++) {
+                var t = trials[i];
+                if (t && t.trial_type === 'survey-text' && t.face_id != null) count++;
+            }
+            return count;
+        } catch (e) { return 0; }
+    }
+
+    function getProgressBarHtml() {
+        var count = getProgressCount();
+        var pct = Math.min(100, (count / IMAGES_TOTAL) * 100);
+        return '<div class="trial-progress-bar"><div class="progress-bar-track"><div class="progress-bar-fill" style="width:' + pct + '%"></div></div><div class="progress-bar-label">' + count + ' / ' + IMAGES_TOTAL + '</div></div>';
+    }
+
     const jsPsych = initJsPsych({
         show_progress_bar: false,
-        on_trial_start: function() {
-            var el = document.getElementById('progress-counter');
-            if (el) {
-                var p = jsPsych.getProgressBarCompleted();
-                el.textContent = (p !== null && p !== undefined) ? Math.round(p * 100) + '%' : '0%';
-            }
-        },
-        on_trial_finish: function() {
-            var el = document.getElementById('progress-counter');
-            if (el) {
-                var p = jsPsych.getProgressBarCompleted();
-                el.textContent = (p !== null && p !== undefined) ? Math.round(p * 100) + '%' : '0%';
-            }
-        },
+        on_trial_start: function() { /* progress updated via getProgressBarHtml in trial content */ },
+        on_trial_finish: function() { /* same */ },
         on_finish: function() {
             /* CSV is saved once when the end screen loads (end_trial on_load), not here, to avoid duplicate files */
         }
@@ -1088,7 +1182,7 @@
         var preload = {
             type: jsPsychPreload,
             images: preload_images,
-            message: '<div class="preload-screen-content"><div class="loading-screen" aria-hidden="true"><div class="loading-spinner"></div><div class="loading-dots"><span></span><span></span><span></span></div></div><p class="preload-message-text">Loading experiment...</p></div>',
+            message: '<div class="preload-screen-content"><div class="loading-bar-wrap"><div class="loading-bar-track"><div class="loading-bar-fill"></div></div></div><p class="preload-message-text">Loading experiment...</p></div>',
             show_progress_bar: true,
             on_load: function() {
                 var el = document.querySelector('.jspsych-display-element');
@@ -1108,7 +1202,7 @@
             type: jsPsychHtmlKeyboardResponse,
             stimulus: function() {
                 var img_path = jsPsych.timelineVariable('stimulus');
-                return '<div class="face-trial-wrap" id="face-trial-wrap"></div><div class="face-container"><img src="' + img_path + '" alt="Face"></div>';
+                return getProgressBarHtml() + '<div class="face-trial-wrap" id="face-trial-wrap"></div><div class="face-container"><img src="' + img_path + '" alt="Face"></div>';
             },
             choices: "NO_KEYS",
             trial_duration: 2000,
@@ -1121,6 +1215,7 @@
 
         var age_response = {
             type: jsPsychSurveyText,
+            preamble: function() { return getProgressBarHtml(); },
             questions: [{ prompt: "How old is this person?", placeholder: "Age", required: true, name: 'age' }],
             button_label: 'Next',
             data: jsPsych.timelineVariable('data'),
@@ -1130,9 +1225,60 @@
                     displayEl.classList.add('survey-has-wallpaper');
                     if (typeof WALLPAPER_URL !== 'undefined') displayEl.style.backgroundImage = 'url("' + WALLPAPER_URL + '")';
                 }
+                setTimeout(function() {
+                    var form = document.getElementById('jspsych-survey-text-form');
+                    if (!form) form = document.querySelector('.jspsych-display-element form');
+                    var input = form && (form.querySelector('input[data-name="age"]') || form.querySelector('input[name="age"]') || form.querySelector('input[type="text"]'));
+                    if (!form || !input) return;
+                    input.setAttribute('inputmode', 'numeric');
+                    var errEl = document.createElement('p');
+                    errEl.className = 'setup-error';
+                    errEl.setAttribute('role', 'alert');
+                    var questionWrap = input.closest('.jspsych-survey-text-question') || input.parentElement;
+                    if (questionWrap) questionWrap.appendChild(errEl);
+
+                    function validateAge() {
+                        var raw = input.value.trim();
+                        var num = parseInt(raw, 10);
+                        errEl.textContent = '';
+                        input.classList.remove('setup-input--error');
+                        if (raw === '' || isNaN(num)) {
+                            errEl.textContent = 'Please enter a valid number (e.g. 25, 40…).';
+                            input.classList.add('setup-input--error');
+                            input.focus();
+                            return false;
+                        }
+                        if (num < 16 || num > 100) {
+                            errEl.textContent = 'Please enter an age between 16 and 100.';
+                            input.classList.add('setup-input--error');
+                            input.focus();
+                            return false;
+                        }
+                        return true;
+                    }
+
+                    form.addEventListener('submit', function(e) {
+                        if (!validateAge()) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                        }
+                    }, true);
+
+                    var btn = form.querySelector('input[type="submit"]') || form.querySelector('button[type="submit"]') || form.querySelector('.jspsych-btn') || form.querySelector('button');
+                    if (btn) {
+                        btn.addEventListener('click', function(e) {
+                            if (!validateAge()) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                e.stopImmediatePropagation();
+                            }
+                        }, true);
+                    }
+                }, 150);
             },
             on_finish: function(data) {
-                data.age_rating = data.response.age;
+                var ageVal = parseInt(String(data.response.age || '').trim(), 10);
+                data.age_rating = (ageVal >= 16 && ageVal <= 100) ? ageVal : null;
                 var displayEl = document.querySelector('.jspsych-display-element');
                 if (displayEl) {
                     displayEl.classList.remove('survey-has-wallpaper');
