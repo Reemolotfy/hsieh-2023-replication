@@ -20,7 +20,7 @@
             --bg-dark: rgba(10, 12, 28, 0.4);
             --bg-mid: rgba(30, 40, 80, 0.35);
             --surface: rgba(255, 255, 255, 0.08);
-            --surface-elevated: rgba(255, 255, 255, 0.12);
+            --surface-elevated: rgba(255, 255, 255, 0.12); 
             --accent: #22d3ee;
             --accent-2: #a78bfa;
             --accent-hover: #38bdf8;
@@ -210,7 +210,7 @@
         .jspsych-display-element {
             padding: clamp(12px, 4vw, 24px) !important;
         }
-
+        /* When progress bar is inside display (injected each trial), pin to top so it’s always visible */
         .jspsych-content-wrapper {
             max-width: min(640px, 100%);
             margin: 0 auto;
@@ -253,6 +253,10 @@
         .welcome-screen-container .screen-card {
             position: relative;
             z-index: 1;
+        }
+        /* No fade/slide on welcome so background is full from the start */
+        .jspsych-display-element:has(.welcome-screen-container) .jspsych-content {
+            animation: none;
         }
 
         /* Break and end screens: full-screen wallpaper + transparent card */
@@ -462,6 +466,10 @@
         .jspsych-display-element input[type="text"]::placeholder {
             color: var(--text-muted);
         }
+        .jspsych-display-element input[type="text"].setup-input--error {
+            border-color: var(--accent) !important;
+            box-shadow: 0 0 0 2px var(--accent-soft) !important;
+        }
 
         .jspsych-btn {
             padding: 14px 32px !important;
@@ -572,30 +580,96 @@
             font-weight: 500;
         }
 
-        /* Progress counter – visible for the whole experiment run */
-        #progress-counter {
+        /* Progress bar – fixed at bottom, wide (transparent glass, matches theme) */
+        .experiment-progress-wrap {
             position: fixed !important;
-            top: 20px !important;
+            bottom: 24px !important;
+            top: auto !important;
             left: 50% !important;
             transform: translateX(-50%) !important;
             z-index: 2147483647 !important;
-            background: rgba(15, 25, 45, 0.92) !important;
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.25) !important;
-            border-radius: 999px !important;
-            padding: 12px 28px !important;
-            font-size: 1rem !important;
-            font-weight: 600 !important;
-            color: #f0f9ff !important;
-            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4) !important;
-            min-width: 4ch;
-            text-align: center;
-            pointer-events: none;
             display: none;
+            flex-direction: column;
+            align-items: center;
+            width: min(92vw, 900px) !important;
+            padding: 18px 28px !important;
+            background: rgba(255, 255, 255, 0.06) !important;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: var(--radius);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            pointer-events: none;
         }
-        body.experiment-running #progress-counter {
-            display: block !important;
+        body.experiment-running .experiment-progress-wrap {
+            display: flex !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            min-height: 70px;
+        }
+        .experiment-progress-wrap .progress-bar-track {
+            width: 100%;
+            height: 14px;
+            border-radius: 999px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+        .experiment-progress-wrap .progress-bar-fill {
+            height: 100%;
+            width: 0%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, var(--accent), var(--accent-2));
+            opacity: 0.85;
+            box-shadow: 0 0 12px var(--glow);
+            transition: width 0.35s ease-out;
+        }
+        .experiment-progress-wrap .progress-bar-label {
+            margin-top: 10px;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        /* Progress bar when embedded IN the trial content – bottom of screen, wide, transparent glass */
+        .trial-progress-bar {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: min(92vw, 900px);
+            padding: 18px 28px;
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: var(--radius);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        }
+        .trial-progress-bar .progress-bar-track {
+            width: 100%;
+            height: 14px;
+            border-radius: 999px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+        .trial-progress-bar .progress-bar-fill {
+            height: 100%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, var(--accent), var(--accent-2));
+            opacity: 0.85;
+            box-shadow: 0 0 12px var(--glow);
+            transition: width 0.35s ease-out;
+        }
+        .trial-progress-bar .progress-bar-label {
+            margin-top: 10px;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text);
         }
 
         /* Survey (age response) screen: wallpaper behind form – on the same container so it always shows */
@@ -940,7 +1014,10 @@
 
     <div class="experiment-blur-bg" id="experiment-blur-bg" aria-hidden="true"></div>
 
-    <div id="progress-counter" aria-live="polite" aria-hidden="true">0%</div>
+    <div class="experiment-progress-wrap" id="experiment-progress-wrap" aria-hidden="true">
+        <div class="progress-bar-track"><div class="progress-bar-fill" id="experiment-progress-fill"></div></div>
+        <div class="progress-bar-label" id="experiment-progress-label">0 / 200</div>
+    </div>
 
     <div id="landing-page" class="landing-page">
         <div class="landing-card">
@@ -1000,23 +1077,42 @@
 
     /* --- 1. INITIALIZE JSPSYCH --- */
     var subject_id;
+    var IMAGES_TOTAL = 200;
+    var progressBarInterval = null;
+
+    function getProgressCount() {
+        try {
+            var trials = jsPsych.data.get().values();
+            if (!Array.isArray(trials)) return 0;
+            var count = 0;
+            for (var i = 0; i < trials.length; i++) {
+                var t = trials[i];
+                if (t && t.trial_type === 'survey-text' && t.face_id != null) count++;
+            }
+            return count;
+        } catch (e) { return 0; }
+    }
+
+    function getProgressBarHtml() {
+        var count = getProgressCount();
+        var pct = Math.min(100, (count / IMAGES_TOTAL) * 100);
+        return '<div class="trial-progress-bar"><div class="progress-bar-track"><div class="progress-bar-fill" style="width:' + pct + '%"></div></div><div class="progress-bar-label">' + count + ' / ' + IMAGES_TOTAL + '</div></div>';
+    }
+
+    function updateImagesProgress() {
+        var count = getProgressCount();
+        var fill = document.getElementById('experiment-progress-fill');
+        var label = document.getElementById('experiment-progress-label');
+        if (fill) fill.style.width = Math.min(100, (count / IMAGES_TOTAL) * 100) + '%';
+        if (label) label.textContent = count + ' / ' + IMAGES_TOTAL;
+    }
+
     const jsPsych = initJsPsych({
         show_progress_bar: false,
-        on_trial_start: function() {
-            var el = document.getElementById('progress-counter');
-            if (el) {
-                var p = jsPsych.getProgressBarCompleted();
-                el.textContent = (p !== null && p !== undefined) ? Math.round(p * 100) + '%' : '0%';
-            }
-        },
-        on_trial_finish: function() {
-            var el = document.getElementById('progress-counter');
-            if (el) {
-                var p = jsPsych.getProgressBarCompleted();
-                el.textContent = (p !== null && p !== undefined) ? Math.round(p * 100) + '%' : '0%';
-            }
-        },
+        on_trial_start: function() { updateImagesProgress(); },
+        on_trial_finish: function() { updateImagesProgress(); },
         on_finish: function() {
+            if (progressBarInterval) { clearInterval(progressBarInterval); progressBarInterval = null; }
             /* CSV is saved once when the end screen loads (end_trial on_load), not here, to avoid duplicate files */
         }
     });
@@ -1055,11 +1151,14 @@
         document.getElementById('confirm-overlay').setAttribute('aria-hidden', 'true');
         document.body.classList.add('experiment-running');
 
-        var counter = document.getElementById('progress-counter');
-        if (counter) {
-            counter.textContent = '0%';
-            counter.setAttribute('aria-hidden', 'false');
-            document.body.appendChild(counter);
+        var progressWrap = document.getElementById('experiment-progress-wrap');
+        if (progressWrap) {
+            progressWrap.setAttribute('aria-hidden', 'false');
+            var fill = document.getElementById('experiment-progress-fill');
+            var label = document.getElementById('experiment-progress-label');
+            if (fill) fill.style.width = '0%';
+            if (label) label.textContent = '0 / ' + IMAGES_TOTAL;
+            document.body.appendChild(progressWrap);
         }
 
         jsPsych.data.addProperties({
@@ -1108,7 +1207,7 @@
             type: jsPsychHtmlKeyboardResponse,
             stimulus: function() {
                 var img_path = jsPsych.timelineVariable('stimulus');
-                return '<div class="face-trial-wrap" id="face-trial-wrap"></div><div class="face-container"><img src="' + img_path + '" alt="Face"></div>';
+                return getProgressBarHtml() + '<div class="face-trial-wrap" id="face-trial-wrap"></div><div class="face-container"><img src="' + img_path + '" alt="Face"></div>';
             },
             choices: "NO_KEYS",
             trial_duration: 2000,
@@ -1121,6 +1220,7 @@
 
         var age_response = {
             type: jsPsychSurveyText,
+            preamble: function() { return getProgressBarHtml(); },
             questions: [{ prompt: "How old is this person?", placeholder: "Age", required: true, name: 'age' }],
             button_label: 'Next',
             data: jsPsych.timelineVariable('data'),
@@ -1130,9 +1230,59 @@
                     displayEl.classList.add('survey-has-wallpaper');
                     if (typeof WALLPAPER_URL !== 'undefined') displayEl.style.backgroundImage = 'url("' + WALLPAPER_URL + '")';
                 }
+                setTimeout(function() {
+                    var form = document.getElementById('jspsych-survey-text-form');
+                    if (!form) form = document.querySelector('.jspsych-display-element form');
+                    var input = form && (form.querySelector('input[data-name="age"]') || form.querySelector('input[name="age"]') || form.querySelector('input[type="text"]'));
+                    if (!form || !input) return;
+                    input.setAttribute('inputmode', 'numeric');
+                    var errEl = document.createElement('p');
+                    errEl.className = 'setup-error';
+                    errEl.setAttribute('role', 'alert');
+                    var questionWrap = input.closest('.jspsych-survey-text-question') || input.parentElement;
+                    if (questionWrap) questionWrap.appendChild(errEl);
+
+                    function validateAge() {
+                        var raw = input.value.trim();
+                        var num = parseInt(raw, 10);
+                        errEl.textContent = '';
+                        input.classList.remove('setup-input--error');
+                        if (raw === '' || isNaN(num)) {
+                            errEl.textContent = 'Please enter a valid number (e.g. 25, 40…).';
+                            input.classList.add('setup-input--error');
+                            input.focus();
+                            return false;
+                        }
+                        if (num < 16 || num > 100) {
+                            errEl.textContent = 'Please enter an age between 16 and 100.';
+                            input.classList.add('setup-input--error');
+                            input.focus();
+                            return false;
+                        }
+                        return true;
+                    }
+
+                    form.addEventListener('submit', function(e) {
+                        if (!validateAge()) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                        }
+                    }, true);
+
+                    if (btn) {
+                        btn.addEventListener('click', function(e) {
+                            if (!validateAge()) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                e.stopImmediatePropagation();
+                            }
+                        }, true);
+                    }
+                }, 150);
             },
             on_finish: function(data) {
-                data.age_rating = data.response.age;
+                var ageVal = parseInt(String(data.response.age || '').trim(), 10);
+                data.age_rating = (ageVal >= 16 && ageVal <= 100) ? ageVal : null;
                 var displayEl = document.querySelector('.jspsych-display-element');
                 if (displayEl) {
                     displayEl.classList.remove('survey-has-wallpaper');
@@ -1169,69 +1319,19 @@
         };
         var end_trial = {
             type: jsPsychHtmlKeyboardResponse,
-            stimulus: '<div class="end-screen-container"><div class="wallpaper-wrap"></div><div class="screen-card end-screen"><h1>Experiment Complete</h1><p>Thank you for taking part.</p><p>Your data should download automatically.</p><p class="press-key">Press <b>SPACE</b> to see your score and finish.</p><div class="end-meta">ID: ' + subject_id + ' · Group: ' + condition_group + '</div></div></div>',
+            stimulus: '<div class="end-screen-container"><div class="wallpaper-wrap"></div><div class="screen-card end-screen"><h1>Experiment Complete</h1><p>Thank you for taking part.</p><p>Your data should download automatically.</p><p class="press-key">If not, press <b>SPACE</b> to download.</p><div class="end-meta">ID: ' + subject_id + ' · Group: ' + condition_group + '</div></div></div>',
             choices: [' '],
             on_load: function() {
                 var wrap = document.querySelector('.end-screen-container .wallpaper-wrap');
                 if (wrap && typeof WALLPAPER_URL !== 'undefined') wrap.style.backgroundImage = 'url("' + WALLPAPER_URL + '")';
                 if (subject_id) jsPsych.data.get().localSave('csv', 'age_estimation_' + subject_id + '.csv');
-            }
-        };
-
-        var score_trial = {
-            type: jsPsychHtmlKeyboardResponse,
-            stimulus: '<div class="end-screen-container"><div class="wallpaper-wrap"></div><div class="screen-card end-screen"><h1>Your Score</h1><div id="end-score-block"></div><p class="press-key">Press <b>SPACE</b> to close.</p></div></div>',
-            choices: [' '],
-            on_load: function() {
-                var wrap = document.querySelector('.end-screen-container .wallpaper-wrap');
-                if (wrap && typeof WALLPAPER_URL !== 'undefined') wrap.style.backgroundImage = 'url("' + WALLPAPER_URL + '")';
-                var scoreEl = document.getElementById('end-score-block');
-                if (scoreEl) {
-                    var base = location.href.replace(/[#?].*$/, '').replace(/\/[^/]*$/, '/');
-                    fetch(base + 'data/face_actual_ages.csv').then(function(r) { return r.ok ? r.text() : Promise.reject(); }).then(function(csv) {
-                        var lines = csv.trim().split(/\r?\n/);
-                        var actualByFace = {};
-                        for (var i = 1; i < lines.length; i++) {
-                            var parts = lines[i].split(',');
-                            if (parts.length >= 2) {
-                                var fid = String(parts[0]).trim().replace(/^0+/, '') || '0';
-                                if (fid.length < 3) fid = ('000' + fid).slice(-3);
-                                var age = parseFloat(parts[1]);
-                                if (!isNaN(age)) actualByFace[fid] = age;
-                            }
-                        }
-                        var allTrials = jsPsych.data.get().json();
-                        var ageTrials = allTrials.filter(function(t) { return t.trial_type === 'survey-text' && t.face_id != null; });
-                        var errors = [], n = 0, within5 = 0;
-                        for (var j = 0; j < ageTrials.length; j++) {
-                            var row = ageTrials[j];
-                            var faceId = String(row.face_id).replace(/^0+/, '') || '0';
-                            if (faceId.length < 3) faceId = ('000' + faceId).slice(-3);
-                            var est = parseFloat(row.age_rating);
-                            var actual = actualByFace[faceId];
-                            if (actual != null && !isNaN(est)) {
-                                var err = Math.abs(est - actual);
-                                errors.push(err);
-                                n++;
-                                if (err <= 5) within5++;
-                            }
-                        }
-                        if (n === 0) { scoreEl.innerHTML = '<p class="score-message">No score data available.</p>'; return; }
-                        var mae = errors.reduce(function(a, b) { return a + b; }, 0) / n;
-                        var pct5 = Math.round((within5 / n) * 100);
-                        var msg = mae <= 4 ? 'Great accuracy!' : mae <= 7 ? 'Nice job!' : 'Thanks for your estimates.';
-                        scoreEl.innerHTML = '<div class="score-block"><p class="score-title">Your score</p><div class="score-row"><div class="score-item"><span class="score-value">' + mae.toFixed(1) + '</span><span class="score-label">Avg. error (years)</span></div><div class="score-item"><span class="score-value">' + pct5 + '%</span><span class="score-label">Within 5 years</span></div></div><p class="score-message">' + msg + '</p></div>';
-                    }).catch(function() { scoreEl.innerHTML = '<p class="score-message">Score unavailable (norming data not loaded).</p>'; });
-                }
-            }
+            },
+            on_finish: function() { /* backup: user can press SPACE to download again if needed */ }
         };
 
         var isPreview = /[?&]preview=1/i.test(location.search);
-        var isScoreOnlyPreview = /[?&]preview=score/i.test(location.search);
-        if (isScoreOnlyPreview) {
-            timeline = [score_trial];
-        } else if (isPreview) {
-            timeline = [break_trial, end_trial, score_trial];
+        if (isPreview) {
+            timeline = [break_trial, end_trial];
         } else {
             timeline.push(break_trial);
             timeline.push({
@@ -1240,21 +1340,16 @@
                 randomize_order: true
             });
             timeline.push(end_trial);
-            timeline.push(score_trial);
         }
 
         jsPsych.run(timeline);
-    }
-
-    /* Open score (or end) screen without running the full experiment */
-    if (/[?&]preview=score/i.test(location.search)) {
-        subject_id = 'preview';
-        condition_group = 'A';
-        document.getElementById('landing-page').classList.add('landing-page--hidden');
-        document.getElementById('id-entry-overlay').setAttribute('aria-hidden', 'true');
-        document.getElementById('confirm-overlay').setAttribute('aria-hidden', 'true');
-        document.removeEventListener('keydown', onLandingKeydown);
-        setTimeout(function() { runExperiment(); }, 100);
+        /* Keep progress bar on top: re-append to body every 350ms so it stays above jsPsych content */
+        progressBarInterval = setInterval(function() {
+            var wrap = document.getElementById('experiment-progress-wrap');
+            if (wrap && wrap.parentNode && document.body.classList.contains('experiment-running')) {
+                wrap.parentNode.appendChild(wrap);
+            }
+        }, 350);
     }
 
     document.getElementById('landing-start').addEventListener('click', showIdEntry);
