@@ -507,8 +507,10 @@
             transform: translateY(0);
         }
 
-        /* ========== Preload screen: same bg as rest of site (wallpaper + overlay) ========== */
+        /* ========== Preload screen: Garrett bg (no white), single progress-style bar ========== */
+        body:has(#jspsych-preload-message) #jspsych-target,
         body:has(#jspsych-preload-message) .jspsych-display-element {
+            background-color: #0f1929 !important;
             background-image: url('assets/garrett-parker-DlkF4-dbCOU-unsplash.jpg') !important;
             background-size: cover !important;
             background-position: center !important;
@@ -532,14 +534,15 @@
         body:has(#jspsych-preload-message) .jspsych-content-wrapper {
             position: relative !important;
             z-index: 1 !important;
-            background: rgba(255, 255, 255, 0.04) !important;
-            backdrop-filter: blur(20px) !important;
-            -webkit-backdrop-filter: blur(20px) !important;
-            border: 1px solid rgba(255, 255, 255, 0.12) !important;
-            border-radius: var(--radius) !important;
-            padding: 40px 36px !important;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
-            max-width: min(420px, 100%) !important;
+            width: fit-content !important;
+            max-width: 95vw !important;
+            background: transparent !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            border: none !important;
+            border-radius: 0 !important;
+            padding: 0 !important;
+            box-shadow: none !important;
         }
         body:has(#jspsych-preload-message) .jspsych-preload-message,
         body:has(#jspsych-preload-message) #jspsych-preload-message {
@@ -550,36 +553,118 @@
         }
         .preload-screen-content {
             text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
-        .preload-screen-content .loading-screen {
-            margin-bottom: 20px;
+        /* Preload: bar only, centered in its container (override .trial-progress-bar fixed bottom) */
+        .preload-progress-bar {
+            position: relative !important;
+            bottom: auto !important;
+            left: auto !important;
+            transform: none !important;
+            width: min(280px, 80vw);
+            margin: 0 auto 12px;
+            padding: 0 !important;
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
-        /* Loading bar – same style as progress bar (shimmer gradient) */
-        .loading-bar-wrap {
-            width: min(280px, 85vw);
-            margin: 0 auto 24px;
+        .preload-progress-bar .progress-bar-track {
+            height: 14px;
+            width: 100%;
         }
-        .loading-bar-track {
-            height: 12px;
-            border-radius: 999px;
-            overflow: hidden;
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.2);
+        .preload-progress-bar .progress-bar-label {
+            display: none;
         }
-        .loading-bar-fill {
+        .preload-bar-fill {
+            width: 100% !important;
             height: 100%;
-            width: 45%;
-            border-radius: 999px;
-            background: linear-gradient(90deg, var(--accent), var(--accent-2), var(--accent));
-            background-size: 200% 100%;
+            background: linear-gradient(90deg, var(--accent), var(--accent-2), var(--accent)) !important;
+            background-size: 200% 100% !important;
             animation: progress-shimmer 2.5s ease-in-out infinite;
             box-shadow: 0 0 12px var(--glow);
         }
         .preload-message-text {
-            margin: 0 0 20px !important;
+            margin: 0 !important;
+            padding: 0 !important;
             color: var(--text) !important;
-            font-size: 1.1rem !important;
+            font-size: 1rem !important;
+            line-height: 1.3 !important;
+        }
+        /* Preload: show and center the plugin bar (fills 0–100%), style like our bar */
+        body:has(#jspsych-preload-message) #jspsych-progressbar-container {
+            display: flex !important;
+            flex-direction: column;
+            align-items: center;
+            position: relative !important;
+            bottom: auto !important;
+            left: auto !important;
+            right: auto !important;
+            top: auto !important;
+            transform: none !important;
+            width: min(280px, 80vw) !important;
+            margin: 12px auto 0 !important;
+            padding: 0 !important;
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+        body:has(#jspsych-preload-message) #jspsych-progressbar-outer {
+            width: 100% !important;
+            padding: 0 !important;
+            background: rgba(255, 255, 255, 0.08) !important;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 999px;
+            overflow: hidden;
+            box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.2);
+        }
+        body:has(#jspsych-preload-message) #jspsych-progressbar-inner {
+            height: 14px !important;
+            border-radius: 999px;
+            background: linear-gradient(90deg, var(--accent), var(--accent-2)) !important;
+            background-size: 100% 100% !important;
+            animation: none !important;
+            box-shadow: 0 0 12px var(--glow);
+            transition: width 0.35s ease-out;
+        }
+        body:has(#jspsych-preload-message) #jspsych-progressbar-container span {
+            display: none !important;
+        }
+        /* Same Garrett bg when showing preload preview (static screen for ?preview=preload) */
+        .jspsych-display-element.preload-preview-active {
+            background-color: #0f1929 !important;
+            background-image: url('assets/garrett-parker-DlkF4-dbCOU-unsplash.jpg') !important;
+            background-size: cover !important;
+            background-position: center !important;
+            background-repeat: no-repeat !important;
+            min-height: 100vh !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+        .jspsych-display-element.preload-preview-active::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(15, 25, 45, 0.35) 0%, rgba(20, 30, 55, 0.4) 50%, rgba(15, 25, 45, 0.5) 100%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        .jspsych-display-element.preload-preview-active .jspsych-content-wrapper {
+            width: fit-content !important;
+            max-width: 95vw !important;
+            background: transparent !important;
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+            border: none;
+            border-radius: 0;
+            padding: 0;
+            box-shadow: none;
         }
 
         /* Progress bar – modern theme with animation */
@@ -1182,11 +1267,14 @@
         var preload = {
             type: jsPsychPreload,
             images: preload_images,
-            message: '<div class="preload-screen-content"><div class="loading-bar-wrap"><div class="loading-bar-track"><div class="loading-bar-fill"></div></div></div><p class="preload-message-text">Loading experiment...</p></div>',
+            message: '<div class="preload-screen-content"><p class="preload-message-text">Loading experiment...</p></div>',
             show_progress_bar: true,
             on_load: function() {
                 var el = document.querySelector('.jspsych-display-element');
-                if (el && typeof WALLPAPER_URL !== 'undefined') el.style.backgroundImage = 'url("' + WALLPAPER_URL + '")';
+                if (el && typeof WALLPAPER_URL !== 'undefined') {
+                    el.style.backgroundImage = 'url("' + WALLPAPER_URL + '")';
+                    el.style.backgroundColor = '#0f1929';
+                }
             }
         };
 
@@ -1326,7 +1414,34 @@
         };
 
         var isPreview = /[?&]preview=1/i.test(location.search);
-        if (isPreview) {
+        var isPreloadPreview = /[?&]preview=preload/i.test(location.search);
+        if (isPreloadPreview) {
+            var preloadScreenHtml = '<div class="preload-screen-content"><div class="trial-progress-bar preload-progress-bar"><div class="progress-bar-track"><div class="progress-bar-fill preload-bar-fill"></div></div></div><p class="preload-message-text">Loading experiment...</p></div>';
+            timeline = [
+                {
+                    type: jsPsychHtmlKeyboardResponse,
+                    stimulus: preloadScreenHtml,
+                    choices: 'ALL_KEYS',
+                    trial_duration: 8000,
+                    on_load: function() {
+                        var el = document.querySelector('.jspsych-display-element');
+                        if (el && typeof WALLPAPER_URL !== 'undefined') {
+                            el.classList.add('preload-preview-active');
+                            el.style.backgroundImage = 'url("' + WALLPAPER_URL + '")';
+                            el.style.backgroundColor = '#0f1929';
+                        }
+                    }
+                },
+                {
+                    type: jsPsychHtmlKeyboardResponse,
+                    stimulus: '<div class="preload-screen-content"><p class="preload-message-text">Preview complete. Press any key to close.</p></div>',
+                    choices: 'ALL_KEYS',
+                    on_load: function() {
+                        document.querySelector('.jspsych-display-element').classList.remove('preload-preview-active');
+                    }
+                }
+            ];
+        } else if (isPreview) {
             timeline = [break_trial, end_trial];
         } else {
             timeline.push(break_trial);
@@ -1366,6 +1481,17 @@
     });
 
     document.getElementById('confirm-start-btn').addEventListener('click', runExperiment);
+
+    /* Preview: show only the loading (preload) page */
+    if (/[?&]preview=preload/i.test(location.search)) {
+        subject_id = 'preview';
+        condition_group = 'A';
+        document.getElementById('landing-page').classList.add('landing-page--hidden');
+        document.getElementById('id-entry-overlay').setAttribute('aria-hidden', 'true');
+        document.getElementById('confirm-overlay').setAttribute('aria-hidden', 'true');
+        document.removeEventListener('keydown', onLandingKeydown);
+        setTimeout(function() { runExperiment(); }, 100);
+    }
 
     document.getElementById('confirm-overlay').addEventListener('keydown', function(e) {
         if (e.key === 'Enter') {
