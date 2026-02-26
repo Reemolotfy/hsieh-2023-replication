@@ -210,7 +210,7 @@
         .jspsych-display-element {
             padding: clamp(12px, 4vw, 24px) !important;
         }
-        /* When progress bar is inside display (injected each trial), pin to top so it’s always visible */
+
         .jspsych-content-wrapper {
             max-width: min(640px, 100%);
             margin: 0 auto;
@@ -253,10 +253,6 @@
         .welcome-screen-container .screen-card {
             position: relative;
             z-index: 1;
-        }
-        /* No fade/slide on welcome so background is full from the start */
-        .jspsych-display-element:has(.welcome-screen-container) .jspsych-content {
-            animation: none;
         }
 
         /* Break and end screens: full-screen wallpaper + transparent card */
@@ -466,10 +462,6 @@
         .jspsych-display-element input[type="text"]::placeholder {
             color: var(--text-muted);
         }
-        .jspsych-display-element input[type="text"].setup-input--error {
-            border-color: var(--accent) !important;
-            box-shadow: 0 0 0 2px var(--accent-soft) !important;
-        }
 
         .jspsych-btn {
             padding: 14px 32px !important;
@@ -580,96 +572,30 @@
             font-weight: 500;
         }
 
-        /* Progress bar – fixed at bottom, wide (transparent glass, matches theme) */
-        .experiment-progress-wrap {
+        /* Progress counter – visible for the whole experiment run */
+        #progress-counter {
             position: fixed !important;
-            bottom: 24px !important;
-            top: auto !important;
+            top: 20px !important;
             left: 50% !important;
             transform: translateX(-50%) !important;
             z-index: 2147483647 !important;
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            width: min(92vw, 900px) !important;
-            padding: 18px 28px !important;
-            background: rgba(255, 255, 255, 0.06) !important;
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: var(--radius);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            background: rgba(15, 25, 45, 0.92) !important;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.25) !important;
+            border-radius: 999px !important;
+            padding: 12px 28px !important;
+            font-size: 1rem !important;
+            font-weight: 600 !important;
+            color: #f0f9ff !important;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4) !important;
+            min-width: 4ch;
+            text-align: center;
             pointer-events: none;
+            display: none;
         }
-        body.experiment-running .experiment-progress-wrap {
-            display: flex !important;
-            visibility: visible !important;
-            opacity: 1 !important;
-            min-height: 70px;
-        }
-        .experiment-progress-wrap .progress-bar-track {
-            width: 100%;
-            height: 14px;
-            border-radius: 999px;
-            overflow: hidden;
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-        }
-        .experiment-progress-wrap .progress-bar-fill {
-            height: 100%;
-            width: 0%;
-            border-radius: 999px;
-            background: linear-gradient(90deg, var(--accent), var(--accent-2));
-            opacity: 0.85;
-            box-shadow: 0 0 12px var(--glow);
-            transition: width 0.35s ease-out;
-        }
-        .experiment-progress-wrap .progress-bar-label {
-            margin-top: 10px;
-            font-size: 1rem;
-            font-weight: 700;
-            color: var(--text);
-        }
-
-        /* Progress bar when embedded IN the trial content – bottom of screen, wide, transparent glass */
-        .trial-progress-bar {
-            position: fixed;
-            bottom: 24px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: min(92vw, 900px);
-            padding: 18px 28px;
-            background: rgba(255, 255, 255, 0.06);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: var(--radius);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.08);
-        }
-        .trial-progress-bar .progress-bar-track {
-            width: 100%;
-            height: 14px;
-            border-radius: 999px;
-            overflow: hidden;
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-        }
-        .trial-progress-bar .progress-bar-fill {
-            height: 100%;
-            border-radius: 999px;
-            background: linear-gradient(90deg, var(--accent), var(--accent-2));
-            opacity: 0.85;
-            box-shadow: 0 0 12px var(--glow);
-            transition: width 0.35s ease-out;
-        }
-        .trial-progress-bar .progress-bar-label {
-            margin-top: 10px;
-            font-size: 1rem;
-            font-weight: 700;
-            color: var(--text);
+        body.experiment-running #progress-counter {
+            display: block !important;
         }
 
         /* Survey (age response) screen: wallpaper behind form – on the same container so it always shows */
@@ -1014,10 +940,7 @@
 
     <div class="experiment-blur-bg" id="experiment-blur-bg" aria-hidden="true"></div>
 
-    <div class="experiment-progress-wrap" id="experiment-progress-wrap" aria-hidden="true">
-        <div class="progress-bar-track"><div class="progress-bar-fill" id="experiment-progress-fill"></div></div>
-        <div class="progress-bar-label" id="experiment-progress-label">0 / 200</div>
-    </div>
+    <div id="progress-counter" aria-live="polite" aria-hidden="true">0%</div>
 
     <div id="landing-page" class="landing-page">
         <div class="landing-card">
@@ -1077,42 +1000,23 @@
 
     /* --- 1. INITIALIZE JSPSYCH --- */
     var subject_id;
-    var IMAGES_TOTAL = 200;
-    var progressBarInterval = null;
-
-    function getProgressCount() {
-        try {
-            var trials = jsPsych.data.get().values();
-            if (!Array.isArray(trials)) return 0;
-            var count = 0;
-            for (var i = 0; i < trials.length; i++) {
-                var t = trials[i];
-                if (t && t.trial_type === 'survey-text' && t.face_id != null) count++;
-            }
-            return count;
-        } catch (e) { return 0; }
-    }
-
-    function getProgressBarHtml() {
-        var count = getProgressCount();
-        var pct = Math.min(100, (count / IMAGES_TOTAL) * 100);
-        return '<div class="trial-progress-bar"><div class="progress-bar-track"><div class="progress-bar-fill" style="width:' + pct + '%"></div></div><div class="progress-bar-label">' + count + ' / ' + IMAGES_TOTAL + '</div></div>';
-    }
-
-    function updateImagesProgress() {
-        var count = getProgressCount();
-        var fill = document.getElementById('experiment-progress-fill');
-        var label = document.getElementById('experiment-progress-label');
-        if (fill) fill.style.width = Math.min(100, (count / IMAGES_TOTAL) * 100) + '%';
-        if (label) label.textContent = count + ' / ' + IMAGES_TOTAL;
-    }
-
     const jsPsych = initJsPsych({
         show_progress_bar: false,
-        on_trial_start: function() { updateImagesProgress(); },
-        on_trial_finish: function() { updateImagesProgress(); },
+        on_trial_start: function() {
+            var el = document.getElementById('progress-counter');
+            if (el) {
+                var p = jsPsych.getProgressBarCompleted();
+                el.textContent = (p !== null && p !== undefined) ? Math.round(p * 100) + '%' : '0%';
+            }
+        },
+        on_trial_finish: function() {
+            var el = document.getElementById('progress-counter');
+            if (el) {
+                var p = jsPsych.getProgressBarCompleted();
+                el.textContent = (p !== null && p !== undefined) ? Math.round(p * 100) + '%' : '0%';
+            }
+        },
         on_finish: function() {
-            if (progressBarInterval) { clearInterval(progressBarInterval); progressBarInterval = null; }
             /* CSV is saved once when the end screen loads (end_trial on_load), not here, to avoid duplicate files */
         }
     });
@@ -1151,14 +1055,11 @@
         document.getElementById('confirm-overlay').setAttribute('aria-hidden', 'true');
         document.body.classList.add('experiment-running');
 
-        var progressWrap = document.getElementById('experiment-progress-wrap');
-        if (progressWrap) {
-            progressWrap.setAttribute('aria-hidden', 'false');
-            var fill = document.getElementById('experiment-progress-fill');
-            var label = document.getElementById('experiment-progress-label');
-            if (fill) fill.style.width = '0%';
-            if (label) label.textContent = '0 / ' + IMAGES_TOTAL;
-            document.body.appendChild(progressWrap);
+        var counter = document.getElementById('progress-counter');
+        if (counter) {
+            counter.textContent = '0%';
+            counter.setAttribute('aria-hidden', 'false');
+            document.body.appendChild(counter);
         }
 
         jsPsych.data.addProperties({
@@ -1207,7 +1108,7 @@
             type: jsPsychHtmlKeyboardResponse,
             stimulus: function() {
                 var img_path = jsPsych.timelineVariable('stimulus');
-                return getProgressBarHtml() + '<div class="face-trial-wrap" id="face-trial-wrap"></div><div class="face-container"><img src="' + img_path + '" alt="Face"></div>';
+                return '<div class="face-trial-wrap" id="face-trial-wrap"></div><div class="face-container"><img src="' + img_path + '" alt="Face"></div>';
             },
             choices: "NO_KEYS",
             trial_duration: 2000,
@@ -1220,7 +1121,6 @@
 
         var age_response = {
             type: jsPsychSurveyText,
-            preamble: function() { return getProgressBarHtml(); },
             questions: [{ prompt: "How old is this person?", placeholder: "Age", required: true, name: 'age' }],
             button_label: 'Next',
             data: jsPsych.timelineVariable('data'),
@@ -1230,59 +1130,9 @@
                     displayEl.classList.add('survey-has-wallpaper');
                     if (typeof WALLPAPER_URL !== 'undefined') displayEl.style.backgroundImage = 'url("' + WALLPAPER_URL + '")';
                 }
-                setTimeout(function() {
-                    var form = document.getElementById('jspsych-survey-text-form');
-                    if (!form) form = document.querySelector('.jspsych-display-element form');
-                    var input = form && (form.querySelector('input[data-name="age"]') || form.querySelector('input[name="age"]') || form.querySelector('input[type="text"]'));
-                    if (!form || !input) return;
-                    input.setAttribute('inputmode', 'numeric');
-                    var errEl = document.createElement('p');
-                    errEl.className = 'setup-error';
-                    errEl.setAttribute('role', 'alert');
-                    var questionWrap = input.closest('.jspsych-survey-text-question') || input.parentElement;
-                    if (questionWrap) questionWrap.appendChild(errEl);
-
-                    function validateAge() {
-                        var raw = input.value.trim();
-                        var num = parseInt(raw, 10);
-                        errEl.textContent = '';
-                        input.classList.remove('setup-input--error');
-                        if (raw === '' || isNaN(num)) {
-                            errEl.textContent = 'Please enter a valid number (e.g. 25, 40…).';
-                            input.classList.add('setup-input--error');
-                            input.focus();
-                            return false;
-                        }
-                        if (num < 16 || num > 100) {
-                            errEl.textContent = 'Please enter an age between 16 and 100.';
-                            input.classList.add('setup-input--error');
-                            input.focus();
-                            return false;
-                        }
-                        return true;
-                    }
-
-                    form.addEventListener('submit', function(e) {
-                        if (!validateAge()) {
-                            e.preventDefault();
-                            e.stopPropagation();
-                        }
-                    }, true);
-
-                    if (btn) {
-                        btn.addEventListener('click', function(e) {
-                            if (!validateAge()) {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                e.stopImmediatePropagation();
-                            }
-                        }, true);
-                    }
-                }, 150);
             },
             on_finish: function(data) {
-                var ageVal = parseInt(String(data.response.age || '').trim(), 10);
-                data.age_rating = (ageVal >= 16 && ageVal <= 100) ? ageVal : null;
+                data.age_rating = data.response.age;
                 var displayEl = document.querySelector('.jspsych-display-element');
                 if (displayEl) {
                     displayEl.classList.remove('survey-has-wallpaper');
@@ -1343,13 +1193,6 @@
         }
 
         jsPsych.run(timeline);
-        /* Keep progress bar on top: re-append to body every 350ms so it stays above jsPsych content */
-        progressBarInterval = setInterval(function() {
-            var wrap = document.getElementById('experiment-progress-wrap');
-            if (wrap && wrap.parentNode && document.body.classList.contains('experiment-running')) {
-                wrap.parentNode.appendChild(wrap);
-            }
-        }, 350);
     }
 
     document.getElementById('landing-start').addEventListener('click', showIdEntry);
