@@ -1169,19 +1169,69 @@
         };
         var end_trial = {
             type: jsPsychHtmlKeyboardResponse,
-            stimulus: '<div class="end-screen-container"><div class="wallpaper-wrap"></div><div class="screen-card end-screen"><h1>Experiment Complete</h1><p>Thank you for taking part.</p><p>Your data should download automatically.</p><p class="press-key">If not, press <b>SPACE</b> to download.</p><div class="end-meta">ID: ' + subject_id + ' · Group: ' + condition_group + '</div></div></div>',
+            stimulus: '<div class="end-screen-container"><div class="wallpaper-wrap"></div><div class="screen-card end-screen"><h1>Experiment Complete</h1><p>Thank you for taking part.</p><p>Your data should download automatically.</p><p class="press-key">Press <b>SPACE</b> to see your score and finish.</p><div class="end-meta">ID: ' + subject_id + ' · Group: ' + condition_group + '</div></div></div>',
             choices: [' '],
             on_load: function() {
                 var wrap = document.querySelector('.end-screen-container .wallpaper-wrap');
                 if (wrap && typeof WALLPAPER_URL !== 'undefined') wrap.style.backgroundImage = 'url("' + WALLPAPER_URL + '")';
                 if (subject_id) jsPsych.data.get().localSave('csv', 'age_estimation_' + subject_id + '.csv');
-            },
-            on_finish: function() { /* backup: user can press SPACE to download again if needed */ }
+            }
+        };
+
+        var score_trial = {
+            type: jsPsychHtmlKeyboardResponse,
+            stimulus: '<div class="end-screen-container"><div class="wallpaper-wrap"></div><div class="screen-card end-screen"><h1>Your Score</h1><div id="end-score-block"></div><p class="press-key">Press <b>SPACE</b> to close.</p></div></div>',
+            choices: [' '],
+            on_load: function() {
+                var wrap = document.querySelector('.end-screen-container .wallpaper-wrap');
+                if (wrap && typeof WALLPAPER_URL !== 'undefined') wrap.style.backgroundImage = 'url("' + WALLPAPER_URL + '")';
+                var scoreEl = document.getElementById('end-score-block');
+                if (scoreEl) {
+                    var base = location.href.replace(/[#?].*$/, '').replace(/\/[^/]*$/, '/');
+                    fetch(base + 'data/face_actual_ages.csv').then(function(r) { return r.ok ? r.text() : Promise.reject(); }).then(function(csv) {
+                        var lines = csv.trim().split(/\r?\n/);
+                        var actualByFace = {};
+                        for (var i = 1; i < lines.length; i++) {
+                            var parts = lines[i].split(',');
+                            if (parts.length >= 2) {
+                                var fid = String(parts[0]).trim().replace(/^0+/, '') || '0';
+                                if (fid.length < 3) fid = ('000' + fid).slice(-3);
+                                var age = parseFloat(parts[1]);
+                                if (!isNaN(age)) actualByFace[fid] = age;
+                            }
+                        }
+                        var allTrials = jsPsych.data.get().json();
+                        var ageTrials = allTrials.filter(function(t) { return t.trial_type === 'survey-text' && t.face_id != null; });
+                        var errors = [], n = 0, within5 = 0;
+                        for (var j = 0; j < ageTrials.length; j++) {
+                            var row = ageTrials[j];
+                            var faceId = String(row.face_id).replace(/^0+/, '') || '0';
+                            if (faceId.length < 3) faceId = ('000' + faceId).slice(-3);
+                            var est = parseFloat(row.age_rating);
+                            var actual = actualByFace[faceId];
+                            if (actual != null && !isNaN(est)) {
+                                var err = Math.abs(est - actual);
+                                errors.push(err);
+                                n++;
+                                if (err <= 5) within5++;
+                            }
+                        }
+                        if (n === 0) { scoreEl.innerHTML = '<p class="score-message">No score data available.</p>'; return; }
+                        var mae = errors.reduce(function(a, b) { return a + b; }, 0) / n;
+                        var pct5 = Math.round((within5 / n) * 100);
+                        var msg = mae <= 4 ? 'Great accuracy!' : mae <= 7 ? 'Nice job!' : 'Thanks for your estimates.';
+                        scoreEl.innerHTML = '<div class="score-block"><p class="score-title">Your score</p><div class="score-row"><div class="score-item"><span class="score-value">' + mae.toFixed(1) + '</span><span class="score-label">Avg. error (years)</span></div><div class="score-item"><span class="score-value">' + pct5 + '%</span><span class="score-label">Within 5 years</span></div></div><p class="score-message">' + msg + '</p></div>';
+                    }).catch(function() { scoreEl.innerHTML = '<p class="score-message">Score unavailable (norming data not loaded).</p>'; });
+                }
+            }
         };
 
         var isPreview = /[?&]preview=1/i.test(location.search);
-        if (isPreview) {
-            timeline = [break_trial, end_trial];
+        var isScoreOnlyPreview = /[?&]preview=score/i.test(location.search);
+        if (isScoreOnlyPreview) {
+            timeline = [score_trial];
+        } else if (isPreview) {
+            timeline = [break_trial, end_trial, score_trial];
         } else {
             timeline.push(break_trial);
             timeline.push({
@@ -1190,9 +1240,21 @@
                 randomize_order: true
             });
             timeline.push(end_trial);
+            timeline.push(score_trial);
         }
 
         jsPsych.run(timeline);
+    }
+
+    /* Open score (or end) screen without running the full experiment */
+    if (/[?&]preview=score/i.test(location.search)) {
+        subject_id = 'preview';
+        condition_group = 'A';
+        document.getElementById('landing-page').classList.add('landing-page--hidden');
+        document.getElementById('id-entry-overlay').setAttribute('aria-hidden', 'true');
+        document.getElementById('confirm-overlay').setAttribute('aria-hidden', 'true');
+        document.removeEventListener('keydown', onLandingKeydown);
+        setTimeout(function() { runExperiment(); }, 100);
     }
 
     document.getElementById('landing-start').addEventListener('click', showIdEntry);
